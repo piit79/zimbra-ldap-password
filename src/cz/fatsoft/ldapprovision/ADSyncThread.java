@@ -14,7 +14,7 @@
    limitations under the License. 
 */
 
-package it.iknowconsulting.adprovision;
+package cz.fatsoft.ldapprovision;
 
 import com.zimbra.common.localconfig.ConfigException;
 import com.zimbra.common.localconfig.LC;

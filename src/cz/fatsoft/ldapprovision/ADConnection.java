@@ -22,7 +22,7 @@
 // http://homepages.ucalgary.ca/~mortis/software/ADConnection.txt
 // http://ldapwiki.willeke.com/wiki/Example%20-%20Active%20Directory%20Change%20Password%20JNDI
 
-package it.iknowconsulting.adprovision;
+package cz.fatsoft.ldapprovision;
 
 import com.zimbra.cs.account.Domain;
 import java.util.Hashtable;
