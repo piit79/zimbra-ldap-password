@@ -33,37 +33,37 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchResult;
 import org.dom4j.DocumentException;
 
-public class ADSyncThread extends Thread {
+public class LDAPSyncThread extends Thread {
 
-    private static volatile ADSyncThread sADSyncThread = null;
+    private static volatile LDAPSyncThread sLDAPSyncThread = null;
     private static Object THREAD_CONTROL_LOCK = new Object();
     private boolean mShutdownRequested = false;
     
-    private ADSyncThread() {
-        setName("ADProvision");
+    private LDAPSyncThread() {
+        setName("LDAPProvision");
     }
 
     // Starts up the active directory sync thread.
     public synchronized static void startup() {
         synchronized (THREAD_CONTROL_LOCK) {
             if (isRunning()) {
-                ZimbraLog.account.info("[ADSyncThread] Cannot start a second thread while another one is running.");
+                ZimbraLog.account.info("[LDAPSyncThread] Cannot start a second thread while another one is running.");
                 return;
             }
 
             // init values
             setInitialSleep();
-            ZimbraLog.account.info("[ADSyncThread] Starting thread with sleep interval of %d min", getSleepInterval());
+            ZimbraLog.account.info("[LDAPSyncThread] Starting thread with sleep interval of %d min", getSleepInterval());
 
             // Start thread
-            sADSyncThread = new ADSyncThread();
-            sADSyncThread.start();
+            sLDAPSyncThread = new LDAPSyncThread();
+            sLDAPSyncThread.start();
         }
     }
 
     public synchronized static boolean isRunning() {
         synchronized (THREAD_CONTROL_LOCK) {
-            if (sADSyncThread != null) {
+            if (sLDAPSyncThread != null) {
                 return true;
             } else {
                 return false;
@@ -73,12 +73,12 @@ public class ADSyncThread extends Thread {
 
     public synchronized static void shutdown() {
         synchronized (THREAD_CONTROL_LOCK) {
-            if (sADSyncThread != null) {
-                sADSyncThread.requestShutdown();
-                sADSyncThread.interrupt();
-                sADSyncThread = null;
+            if (sLDAPSyncThread != null) {
+                sLDAPSyncThread.requestShutdown();
+                sLDAPSyncThread.interrupt();
+                sLDAPSyncThread = null;
             } else {
-                ZimbraLog.account.info("[ADSyncThread] shutdown() called, but thread is not running.");
+                ZimbraLog.account.info("[LDAPSyncThread] shutdown() called, but thread is not running.");
             }
         }
     }
@@ -89,12 +89,12 @@ public class ADSyncThread extends Thread {
         // of random effect when determining the next mailbox id.
         int sleepTime;
         sleepTime = getInitialSleep();
-        ZimbraLog.account.info("[ADSyncThread] Sleeping for %d min before doing work.", sleepTime);
+        ZimbraLog.account.info("[LDAPSyncThread] Sleeping for %d min before doing work.", sleepTime);
         try {
             Thread.sleep(sleepTime*60000);
         } catch (InterruptedException e) {
-            ZimbraLog.account.info("[ADSyncThread] Shutting down");
-            sADSyncThread = null;
+            ZimbraLog.account.info("[LDAPSyncThread] Shutting down");
+            sLDAPSyncThread = null;
             return;
         }
                 
@@ -106,18 +106,18 @@ public class ADSyncThread extends Thread {
 
         while (true) {
             if (mShutdownRequested) {
-                ZimbraLog.account.info("[ADSyncThread] Shutting down");
-                sADSyncThread = null;
+                ZimbraLog.account.info("[LDAPSyncThread] Shutting down");
+                sLDAPSyncThread = null;
                 return;
             }
             
             try {
                 LC.reload();
             } catch (ConfigException ex) {
-                ZimbraLog.account.info("[ADSyncThread] Unable to reload local configuration: %s", ex);
+                ZimbraLog.account.info("[LDAPSyncThread] Unable to reload local configuration: %s", ex);
                 return;
             } catch (DocumentException ex) {
-                ZimbraLog.account.info("[ADSyncThread] Unable to reload local configuration: %s", ex);
+                ZimbraLog.account.info("[LDAPSyncThread] Unable to reload local configuration: %s", ex);
             }
 
             setSleepInterval();
@@ -129,15 +129,15 @@ public class ADSyncThread extends Thread {
                 try {
                     defaultDomain = prov.getDomainByName(getDefaultDomainName());
                 } catch (ServiceException ex) {
-                    ZimbraLog.account.info("[ADSyncThread] Default domain not found: %s", ex);
+                    ZimbraLog.account.info("[LDAPSyncThread] Default domain not found: %s", ex);
                     return;
                 }
 
-                ADConnection adc;
+                LDAPConnection adc;
                 try {
-                    adc = new ADConnection(defaultDomain);
+                    adc = new LDAPConnection(defaultDomain);
                 } catch (NamingException ex) {
-                    ZimbraLog.account.info("[ADSyncThread] Unable to connect to AD: %s", ex);
+                    ZimbraLog.account.info("[LDAPSyncThread] Unable to connect to AD: %s", ex);
                     return;
                 }
 
@@ -148,18 +148,18 @@ public class ADSyncThread extends Thread {
         }
     }
 
-    private void doSyncFromAD(Provisioning prov, ADConnection adc) {
-        ZimbraLog.account.info("[ADSyncThread] Starting AD eager mode autoprovisioning");
+    private void doSyncFromAD(Provisioning prov, LDAPConnection adc) {
+        ZimbraLog.account.info("[LDAPSyncThread] Starting AD eager mode autoprovisioning");
 
         NamingEnumeration entries = null;
         try {
             entries = adc.getUsers();
             if (!entries.hasMore()) {
-                ZimbraLog.account.info("[ADSyncThread] No users in AD? Exiting...");
+                ZimbraLog.account.info("[LDAPSyncThread] No users in AD? Exiting...");
                 return;
             }
         } catch (NamingException ex) {
-            ZimbraLog.account.info("[ADSyncThread] Unable to fetch user list from AD: %", ex);
+            ZimbraLog.account.info("[LDAPSyncThread] Unable to fetch user list from AD: %", ex);
         }
 
         if (entries == null) {
@@ -173,8 +173,8 @@ public class ADSyncThread extends Thread {
         try {
             while (entries.hasMore()) {
                 if (mShutdownRequested) {
-                    ZimbraLog.account.info("[ADSyncThread] Shutting down AD eager mode autoprovisioning");
-                    sADSyncThread = null;
+                    ZimbraLog.account.info("[LDAPSyncThread] Shutting down AD eager mode autoprovisioning");
+                    sLDAPSyncThread = null;
                     return;
                 }
 
@@ -205,7 +205,7 @@ public class ADSyncThread extends Thread {
 
                 Account acct = prov.getAccountByName(sAMAccountName);
                 if (acct == null) {
-                    acct = ADUser.createAccount(entry, getDefaultDomainName());
+                    acct = LDAPUser.createAccount(entry, getDefaultDomainName());
                     if (acct != null) {
                         totalNewUsers++;
                     }
@@ -215,24 +215,24 @@ public class ADSyncThread extends Thread {
                 }
             }
         } catch (NamingException ex) {
-            ZimbraLog.account.info("[ADSyncThread] %s", ex);
+            ZimbraLog.account.info("[LDAPSyncThread] %s", ex);
         } catch (ServiceException ex) {
-            ZimbraLog.sync.info("[ADSyncThread] %s", ex);
+            ZimbraLog.sync.info("[LDAPSyncThread] %s", ex);
         }
 
-        ZimbraLog.account.info("[ADSyncThread] Created %d new users", totalNewUsers);
-        ZimbraLog.account.info("[ADSyncThread] AD eager mode autoprovisioning stopped");        
+        ZimbraLog.account.info("[LDAPSyncThread] Created %d new users", totalNewUsers);
+        ZimbraLog.account.info("[LDAPSyncThread] AD eager mode autoprovisioning stopped");        
     }
 
     private void sleep() {
         int interval = getSleepInterval();
-        ZimbraLog.account.info("[ADSyncThread] Sleeping for %d minutes", interval);
+        ZimbraLog.account.info("[LDAPSyncThread] Sleeping for %d minutes", interval);
         
         if (interval > 0) {
             try {
                 Thread.sleep(interval*60000);
             } catch (InterruptedException e) {
-                ZimbraLog.account.info("[ADSyncThread] Interrupted");
+                ZimbraLog.account.info("[LDAPSyncThread] Interrupted");
                 mShutdownRequested = true;
             }
         } else {
@@ -276,7 +276,7 @@ public class ADSyncThread extends Thread {
                 // try to set automatically
                 sDefaultDomainName = Provisioning.getInstance().getConfig().getDefaultDomainName();
             } catch (ServiceException ex) {
-                ZimbraLog.account.info("[ADSyncThread] Can't set the default domain name. Default value <"+sDefaultDomainName+ "> will not work: %s", ex);
+                ZimbraLog.account.info("[LDAPSyncThread] Can't set the default domain name. Default value <"+sDefaultDomainName+ "> will not work: %s", ex);
             }
         }
     }

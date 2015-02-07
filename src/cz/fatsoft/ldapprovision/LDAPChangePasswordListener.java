@@ -26,7 +26,7 @@ import java.security.Security;
 import java.util.Map;
 import javax.naming.NamingException;
 
-public class ADChangePasswordListener extends ChangePasswordListener {
+public class LDAPChangePasswordListener extends ChangePasswordListener {
             
     @Override
     public void preModify(Account acct, String newPassword, Map context, Map<String, Object> attrsToModify) throws ServiceException {
@@ -37,7 +37,7 @@ public class ADChangePasswordListener extends ChangePasswordListener {
             // the keystore that holds trusted root certificates
             System.setProperty("javax.net.ssl.trustStore", "/opt/zimbra/java/jre/lib/security/cacerts");
             System.setProperty("javax.net.debug", "all");
-            ADConnection adc = new ADConnection(domain);
+            LDAPConnection adc = new LDAPConnection(domain);
             adc.updatePassword(acct.getDisplayName(), newPassword);
         } catch (NamingException ex) {
             throw AccountServiceException.PERM_DENIED(ex.toString());

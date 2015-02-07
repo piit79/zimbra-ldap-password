@@ -26,7 +26,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchResult;
 
-public class ADUser {
+public class LDAPUser {
 
     public static Account createAccount(SearchResult entry, String defaultDomainName) throws ServiceException {
         Account acct = null;
@@ -56,7 +56,7 @@ public class ADUser {
 
             // return if the user domain name is not our default domain name
             if (!defaultDomainName.equals(parts[1])) {
-                ZimbraLog.account.info("[ADUser] User %s is not in our default domain", userPrincipalName);
+                ZimbraLog.account.info("[LDAPUser] User %s is not in our default domain", userPrincipalName);
                 return null;
             }
 
@@ -66,7 +66,7 @@ public class ADUser {
                 mailAccount = mailparts[0];
             }
 
-            ZimbraLog.account.info("[ADUser] Creating user: %s '%s' <%s@%s>", givenName, name, sAMAccountName, defaultDomainName);
+            ZimbraLog.account.info("[LDAPUser] Creating user: %s '%s' <%s@%s>", givenName, name, sAMAccountName, defaultDomainName);
             HashMap attrs  = new HashMap();
             attrs.put(Provisioning.A_givenName, givenName);
             if (!sn.equals("")) {
@@ -79,11 +79,11 @@ public class ADUser {
             acct = prov.createAccount(userPrincipalName, "AUTOPROVISIONED", attrs);
 
             if (!mailAccount.equals(sAMAccountName)) {
-                ZimbraLog.account.info("[ADUser] Creating alias <%s@%s> for user %s", mailAccount, defaultDomainName, sAMAccountName);
+                ZimbraLog.account.info("[LDAPUser] Creating alias <%s@%s> for user %s", mailAccount, defaultDomainName, sAMAccountName);
                 prov.addAlias(acct, mail);
             }        
         } catch (NamingException ex) {
-            ZimbraLog.account.info("[ADUser] Unable to fetch attributes from AD for the user %s", ex);
+            ZimbraLog.account.info("[LDAPUser] Unable to fetch attributes from AD for the user %s", ex);
         }
         
         return acct;

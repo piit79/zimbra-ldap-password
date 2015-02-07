@@ -20,27 +20,27 @@ import com.zimbra.common.service.ServiceException;
 import com.zimbra.cs.account.ldap.ChangePasswordListener;
 import com.zimbra.cs.extension.ZimbraExtension;
 
-public class ADProvision implements ZimbraExtension {
-    public ADProvision() {
+public class LDAPProvision implements ZimbraExtension {
+    public LDAPProvision() {
     }
 			
     @Override
     public void init() throws ServiceException {
-        ChangePasswordListener.register("ADPassword", new ADChangePasswordListener());
-        if (!ADSyncThread.isRunning()) {
-            ADSyncThread.startup();
+        ChangePasswordListener.register("ADPassword", new LDAPChangePasswordListener());
+        if (!LDAPSyncThread.isRunning()) {
+            LDAPSyncThread.startup();
         }
     }
 
     @Override
     public void destroy() {
-        if (ADSyncThread.isRunning()) {
-            ADSyncThread.shutdown();
+        if (LDAPSyncThread.isRunning()) {
+            LDAPSyncThread.shutdown();
         }
     }
 
     @Override
     public String getName() {
-        return "ADProvision";
+        return "LDAPProvision";
     }
 }

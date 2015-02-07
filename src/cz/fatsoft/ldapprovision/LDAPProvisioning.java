@@ -16,6 +16,7 @@
 
 package cz.fatsoft.ldapprovision;
 
+import com.zimbra.common.account.Key.AccountBy;
 import com.zimbra.common.localconfig.LC;
 import com.zimbra.common.service.ServiceException;
 import com.zimbra.common.util.ZimbraLog;
@@ -29,20 +30,20 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.SearchResult;
 
-public class ADProvisioning extends LdapProvisioning {
+public class LDAPProvisioning extends LdapProvisioning {
 
-    private static ADProvisioning SINGLETON = null;
+    private static LDAPProvisioning SINGLETON = null;
 
-    private static synchronized void ensureSingleton(ADProvisioning prov) {
+    private static synchronized void ensureSingleton(LDAPProvisioning prov) {
         if (SINGLETON != null) {
             // pass an exception to have the stack logged
-            Zimbra.halt("Only one instance of ADProvisioning can be created",
-                    ServiceException.FAILURE("failed to instantiate ADProvisioning", null));
+            Zimbra.halt("Only one instance of LDAPProvisioning can be created",
+                    ServiceException.FAILURE("failed to instantiate LDAPProvisioning", null));
         }
         SINGLETON = prov;
     }
 
-    public ADProvisioning() {
+    public LDAPProvisioning() {
         super();
     }    
 
@@ -70,9 +71,9 @@ public class ADProvisioning extends LdapProvisioning {
         
         Domain defaultDomain = prov.getDomainByName(defaultDomainName);
 
-        ADConnection adc;
+        LDAPConnection adc;
         try {
-            adc = new ADConnection(defaultDomain);
+            adc = new LDAPConnection(defaultDomain);
         } catch (NamingException ex) {
             adc = null;
             ZimbraLog.account.info(ex);
@@ -82,23 +83,23 @@ public class ADProvisioning extends LdapProvisioning {
             return null;
         }
         
-        ZimbraLog.account.info("[ADProvisioning] Autoprovisioning user "+key);
+        ZimbraLog.account.info("[LDAPProvisioning] Autoprovisioning user "+key);
         try {
             NamingEnumeration entries = adc.fetchUser(key);
             if (entries.hasMore()) {
                 // user found in AD
                 SearchResult entry = (SearchResult)entries.nextElement();
                 
-                acct = ADUser.createAccount(entry, defaultDomainName);
+                acct = LDAPUser.createAccount(entry, defaultDomainName);
                 
                 if (acct != null) {
                     AccountUtil.addAccountToLogContext(prov, acct.getId(), ZimbraLog.C_NAME, ZimbraLog.C_ID, null);
                 }
             } else {
-                ZimbraLog.account.info("[ADProvisioning] User "+key+" not found in AD");
+                ZimbraLog.account.info("[LDAPProvisioning] User "+key+" not found in AD");
             }
         } catch (NamingException ex) {
-            ZimbraLog.account.info("[ADProvisioning] Unable to search user in AD: %s", ex);
+            ZimbraLog.account.info("[LDAPProvisioning] Unable to search user in AD: %s", ex);
         }
         
         return acct;

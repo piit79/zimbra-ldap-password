@@ -35,12 +35,12 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.ModificationItem;
 import javax.naming.directory.SearchControls;
 
-public class ADConnection {
+public class LDAPConnection {
 
     DirContext ldapContext;
     String authLdapSearchBase;
 
-    public ADConnection(Domain domain) throws NamingException {
+    public LDAPConnection(Domain domain) throws NamingException {
         String authLdapURL = domain.getAuthLdapURL()[0];
         String authLdapSearchBindDn = domain.getAuthLdapSearchBindDn();
         String authLdapSearchBindPassword = domain.getAuthLdapSearchBindPassword();
