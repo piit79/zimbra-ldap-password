@@ -1,2 +1,2 @@
 # zimbra-ldap-password
-Password change plugin for Zimbra
+LDAP Password change plugin for Zimbra
